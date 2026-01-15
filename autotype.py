@@ -74,18 +74,35 @@ pyautogui.PAUSE = 0
 
 print("You got 5 seconds to get to your doc!")
 
+
+
+
+sentences = text.split(".")
+sentences.pop()
+len_sentences = [len(i) for i in sentences]
+s_order = [1, 3, 2, 4, 5, 7, 6, 9, 8, 10]
+completed_sentences = []
+completed_index = 0
+
+
+reordered_text = ""
+for i in range(len(s_order)):
+    reordered_text += sentences[s_order[i] - 1]
+    reordered_text += "."
+
+
+text = reordered_text
+print(text)
 time.sleep(2)
 
+
 i = 0
-
-
 while i < len(text):
     time.sleep(delay)
     pyautogui.PAUSE = 0
 
     char = text[i]
 
-    print(curText, text)
     # Check for typos
     if not text.startswith(curText):
         pyautogui.press('backspace')
@@ -93,9 +110,12 @@ while i < len(text):
         i -= 1
         continue
 
-    # stop a bit every sentence
-    # if i != 0 and curText[i - 1] == ".":
-    #     time.sleep(random.randint(2, 10))
+    # every sentence
+    if i != 0 and curText[i - 1] == ".":
+        completed_sentences.append(s_order[completed_index])
+        print("Completed sentence ", completed_sentences[-1])
+        completed_index += 1
+        time.sleep(1)
 
 
     if i != 0 and curText[-1] == " ":
