@@ -57,6 +57,13 @@ def get_next_word(full, typed):
         return rest
     return rest[:space]
 
+def insert_from_right(text, ch, num):
+    index = len(text) - num
+    if index < 0:
+        index = 0
+    return text[:index] + ch + text[index:]
+
+
 
 
 #text = input("Input the text you want to type.\n")
@@ -76,24 +83,29 @@ print("You got 5 seconds to get to your doc!")
 
 
 
-
 sentences = text.split(".")
 sentences.pop()
+sentences = [s.strip() for s in sentences]
+print(sentences)
+
 len_sentences = [len(i) for i in sentences]
-s_order = [1, 3, 2, 4, 5, 7, 6, 9, 8, 10]
+print(len_sentences)
+
+s_order = [4, 7, 6, 9, 5, 8, 10, 1, 3, 2]
 completed_sentences = []
 completed_index = 0
 
+left_shift = 0
 
 reordered_text = ""
 for i in range(len(s_order)):
-    reordered_text += sentences[s_order[i] - 1]
-    reordered_text += "."
+    reordered_text += sentences[s_order[i] - 1].strip()
+    reordered_text += ". "
 
 
 text = reordered_text
 print(text)
-time.sleep(2)
+time.sleep(5)
 
 
 i = 0
@@ -104,18 +116,49 @@ while i < len(text):
     char = text[i]
 
     # Check for typos
-    if not text.startswith(curText):
-        pyautogui.press('backspace')
-        curText = curText[:-1]
-        i -= 1
-        continue
+    # if not text.startswith(curText):
+    #     pyautogui.press('backspace')
+    #     curText = curText[:-1]
+    #     i -= 1
+    #     continue
+
 
     # every sentence
-    if i != 0 and curText[i - 1] == ".":
+    if i != 0 and text[i - 1] == ".":
+        if left_shift > 0:
+            for right in range(left_shift):
+                pyautogui.press('right')
+            left_shift = 0
+
         completed_sentences.append(s_order[completed_index])
-        print("Completed sentence ", completed_sentences[-1])
+        print(f"Completed sentences {completed_sentences}")
+
         completed_index += 1
+
+        next_sentence = s_order[completed_index]
+        print(f"Next sentence {next_sentence}")
         time.sleep(1)
+
+        later_sentences = []
+        for s in completed_sentences:
+            if s > next_sentence:
+                later_sentences.append(s)
+                print()
+        print(f"later sentences {later_sentences}")
+
+
+
+        len_later_sentences = [(len_sentences[_ - 1] + 2) for _ in later_sentences]
+        num_hit_left = sum(len_later_sentences)
+
+        if num_hit_left != 0:
+
+            for left in range(num_hit_left):
+                pyautogui.press('left')
+                left_shift += 1
+
+        time.sleep(1)
+
 
 
     if i != 0 and curText[-1] == " ":
@@ -126,7 +169,7 @@ while i < len(text):
             # type the wrong word
             for letter in wrong_word:
                 pyautogui.press(letter)
-                curText += letter
+                curText = insert_from_right(curText, letter, left_shift)
                 time.sleep(delay)
 
 
@@ -140,7 +183,7 @@ while i < len(text):
             # type the wrong word
             for letter in wrong_word:
                 pyautogui.press(letter)
-                curText += letter
+                curText = insert_from_right(curText, letter, left_shift)
                 time.sleep(delay)
 
             time.sleep(1)
@@ -155,7 +198,7 @@ while i < len(text):
             pyautogui.keyUp('shift')
         else:
             pyautogui.press(typoKey(char))
-        curText += typoKey(char)
+        curText = insert_from_right(curText, typoKey(char), left_shift)
 
     else:
         if char.isupper():
@@ -164,6 +207,6 @@ while i < len(text):
             pyautogui.keyUp('shift')
         else:
             pyautogui.press(char)
-        curText += char
+        curText = insert_from_right(curText, char, left_shift)
 
     i += 1
